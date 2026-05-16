@@ -1,6 +1,7 @@
 // ==== הדביקי את הקוד הזה ב-Google Apps Script ====
 // Extensions > Apps Script > הדביקי > Deploy > New Deployment > Web App
 // Execute as: Me, Who has access: Anyone
+// ** חשוב: אחרי עדכון, צריכה לעשות Deploy חדש (New deployment) **
 
 const KIDS = ['דנ', 'אב', 'יר', 'ג'];
 
@@ -42,26 +43,21 @@ function setCount(month, name, count) {
 }
 
 function doGet(e) {
-  const month = (e && e.parameter && e.parameter.month) || getCurrentMonth();
-  const data = getData(month);
-  return ContentService.createTextOutput(JSON.stringify(data))
-    .setMimeType(ContentService.MimeType.JSON);
-}
+  const params = e && e.parameter ? e.parameter : {};
+  const month = params.month || getCurrentMonth();
+  const action = params.action || '';
+  const name = params.name || '';
 
-function doPost(e) {
-  const body = JSON.parse(e.postData.contents);
-  const month = body.month || getCurrentMonth();
-
-  if (body.action === 'add') {
+  if (action === 'add' && name) {
     const data = getData(month);
-    setCount(month, body.name, (data[body.name] || 0) + 1);
-  } else if (body.action === 'remove') {
+    setCount(month, name, (data[name] || 0) + 1);
+  } else if (action === 'remove' && name) {
     const data = getData(month);
-    const current = data[body.name] || 0;
-    setCount(month, body.name, Math.max(0, current - 1));
-  } else if (body.action === 'reset') {
+    const current = data[name] || 0;
+    setCount(month, name, Math.max(0, current - 1));
+  } else if (action === 'reset') {
     const data = getData(month);
-    Object.keys(data).forEach(name => setCount(month, name, 0));
+    Object.keys(data).forEach(n => setCount(month, n, 0));
   }
 
   const updated = getData(month);

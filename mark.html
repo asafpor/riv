@@ -129,7 +129,7 @@
         const API_URL = 'https://script.google.com/macros/s/AKfycbxzu_psI03QFTHgo4EZo-OUQ9Jcu_Ac0sSTLkWWGUJascMbDxjwXeiOt1KgUyoW3Qg-/exec';
 
         const KIDS = ['דנ', 'אב', 'יר', 'ג'];
-        const PASS = 'riv2024';
+        const PASS = '2222';
         let currentData = {};
 
         function getCurrentMonth() {
@@ -159,18 +159,16 @@
         });
 
         async function loadAndRender() {
-            const res = await fetch(`${API_URL}?month=${getCurrentMonth()}`);
-            currentData = await res.json();
+            const res = await fetch(`${API_URL}?month=${getCurrentMonth()}`, { redirect: 'follow' });
+            const text = await res.text();
+            currentData = JSON.parse(text);
             renderPanel();
         }
 
         async function sendAction(action, name) {
             document.getElementById('panel').classList.add('disabled');
-            await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action, name, month: getCurrentMonth() })
-            });
+            const url = `${API_URL}?action=${action}&name=${encodeURIComponent(name)}&month=${getCurrentMonth()}`;
+            await fetch(url, { redirect: 'follow' });
             await loadAndRender();
             document.getElementById('panel').classList.remove('disabled');
         }

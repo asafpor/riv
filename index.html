@@ -96,8 +96,10 @@
         }
 
         async function loadData() {
-            const res = await fetch(`${API_URL}?month=${getCurrentMonth()}`);
-            return await res.json();
+            const res = await fetch(`${API_URL}?month=${getCurrentMonth()}`, { redirect: 'follow' });
+            if (!res.ok) throw new Error('fetch failed');
+            const text = await res.text();
+            return JSON.parse(text);
         }
 
         function render(data) {
