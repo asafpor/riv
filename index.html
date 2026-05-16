@@ -110,9 +110,7 @@
             const totalFights = sorted.reduce((sum, [_, count]) => sum + count, 0);
 
             if (totalFights === 0) {
-                scoreboard.innerHTML = '<div class="no-data">עדיין אין נתונים החודש</div>';
                 bonusBanner.innerHTML = '';
-                return;
             }
 
             const allUnderTen = sorted.every(([_, count]) => count < 10);
