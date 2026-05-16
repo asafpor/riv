@@ -57,33 +57,32 @@
             max-width: 500px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
-        nav {
-            margin-top: 30px;
-            display: flex;
-            gap: 12px;
-        }
+        nav { margin-top: 30px; display: flex; gap: 12px; }
         nav a {
             color: white;
             text-decoration: none;
             padding: 10px 20px;
             border: 2px solid white;
             border-radius: 30px;
-            transition: all 0.3s;
         }
         nav a:hover { background: white; color: #764ba2; }
         .no-data { color: white; font-size: 1.2em; text-align: center; margin-top: 40px; }
+        .loading { color: rgba(255,255,255,0.8); text-align: center; margin-top: 40px; font-size: 1.2em; }
     </style>
 </head>
 <body>
     <h1>מד ריבים</h1>
     <div class="month-label" id="monthLabel"></div>
     <div id="bonusBanner"></div>
-    <div class="scoreboard" id="scoreboard"></div>
+    <div class="scoreboard" id="scoreboard">
+        <div class="loading">טוען...</div>
+    </div>
     <nav>
         <a href="rules.html">חוקים</a>
     </nav>
     <script>
-        const KIDS = ['דנ', 'אב', 'יר', 'ג'];
+        // ===== שימי כאן את ה-URL של ה-Web App =====
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxzu_psI03QFTHgo4EZo-OUQ9Jcu_Ac0sSTLkWWGUJascMbDxjwXeiOt1KgUyoW3Qg-/exec';
 
         function getCurrentMonth() {
             const now = new Date();
@@ -96,20 +95,13 @@
             return `${months[now.getMonth()]} ${now.getFullYear()}`;
         }
 
-        function getData() {
-            const key = `fights_${getCurrentMonth()}`;
-            const data = localStorage.getItem(key);
-            if (!data) {
-                const initial = {};
-                KIDS.forEach(k => initial[k] = 0);
-                return initial;
-            }
-            return JSON.parse(data);
+        async function loadData() {
+            const res = await fetch(`${API_URL}?month=${getCurrentMonth()}`);
+            return await res.json();
         }
 
-        function render() {
+        function render(data) {
             document.getElementById('monthLabel').textContent = getMonthLabel();
-            const data = getData();
             const sorted = Object.entries(data).sort((a, b) => a[1] - b[1]);
             const scoreboard = document.getElementById('scoreboard');
             const bonusBanner = document.getElementById('bonusBanner');
@@ -165,7 +157,9 @@
             scoreboard.innerHTML = html;
         }
 
-        render();
+        loadData().then(render).catch(() => {
+            document.getElementById('scoreboard').innerHTML = '<div class="no-data">שגיאה בטעינה</div>';
+        });
     </script>
 </body>
 </html>

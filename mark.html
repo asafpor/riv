@@ -54,15 +54,10 @@
             align-items: center;
             justify-content: space-between;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            cursor: pointer;
-            border: none;
             width: 100%;
-            font-size: 1em;
-            transition: transform 0.2s;
         }
-        .kid-btn:active { transform: scale(0.95); }
         .kid-name { font-size: 1.4em; font-weight: 600; color: #333; }
-        .kid-count { font-size: 1.8em; font-weight: 700; color: #e53935; }
+        .kid-count { font-size: 1.8em; font-weight: 700; color: #e53935; min-width: 40px; text-align: center; }
         .kid-actions { display: flex; align-items: center; gap: 10px; }
         .minus-btn {
             background: #ffcdd2;
@@ -86,10 +81,7 @@
             color: #2e7d32;
             font-weight: bold;
         }
-        .reset-section {
-            margin-top: 30px;
-            text-align: center;
-        }
+        .reset-section { margin-top: 30px; text-align: center; display: none; }
         .reset-btn {
             background: #f44336;
             color: white;
@@ -99,11 +91,7 @@
             font-size: 1em;
             cursor: pointer;
         }
-        nav {
-            margin-top: 30px;
-            display: flex;
-            gap: 12px;
-        }
+        nav { margin-top: 30px; display: flex; gap: 12px; }
         nav a {
             color: white;
             text-decoration: none;
@@ -113,6 +101,7 @@
         }
         nav a:hover { background: white; color: #2c3e50; }
         .month-label { color: rgba(255,255,255,0.8); margin-bottom: 20px; font-size: 1.1em; }
+        .disabled { opacity: 0.5; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -126,7 +115,7 @@
     </div>
 
     <div class="panel" id="panel"></div>
-    <div class="reset-section" id="resetSection" style="display:none;">
+    <div class="reset-section" id="resetSection">
         <button class="reset-btn" onclick="resetMonth()">איפוס חודש</button>
     </div>
 
@@ -136,8 +125,12 @@
     </nav>
 
     <script>
+        // ===== שימי כאן את ה-URL של ה-Web App =====
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxzu_psI03QFTHgo4EZo-OUQ9Jcu_Ac0sSTLkWWGUJascMbDxjwXeiOt1KgUyoW3Qg-/exec';
+
         const KIDS = ['דנ', 'אב', 'יר', 'ג'];
         const PASS = 'riv2024';
+        let currentData = {};
 
         function getCurrentMonth() {
             const now = new Date();
@@ -150,29 +143,12 @@
             return `${months[now.getMonth()]} ${now.getFullYear()}`;
         }
 
-        function getKey() { return `fights_${getCurrentMonth()}`; }
-
-        function getData() {
-            const data = localStorage.getItem(getKey());
-            if (!data) {
-                const initial = {};
-                KIDS.forEach(k => initial[k] = 0);
-                return initial;
-            }
-            return JSON.parse(data);
-        }
-
-        function saveData(data) {
-            localStorage.setItem(getKey(), JSON.stringify(data));
-        }
-
         function tryLogin() {
-            const input = document.getElementById('passInput').value;
-            if (input === PASS) {
+            if (document.getElementById('passInput').value === PASS) {
                 document.getElementById('loginBox').style.display = 'none';
                 document.getElementById('panel').style.display = 'block';
                 document.getElementById('resetSection').style.display = 'block';
-                renderPanel();
+                loadAndRender();
             } else {
                 alert('סיסמה שגויה');
             }
@@ -182,38 +158,40 @@
             if (e.key === 'Enter') tryLogin();
         });
 
-        function addFight(name) {
-            const data = getData();
-            data[name]++;
-            saveData(data);
+        async function loadAndRender() {
+            const res = await fetch(`${API_URL}?month=${getCurrentMonth()}`);
+            currentData = await res.json();
             renderPanel();
         }
 
-        function removeFight(name) {
-            const data = getData();
-            if (data[name] > 0) data[name]--;
-            saveData(data);
-            renderPanel();
+        async function sendAction(action, name) {
+            document.getElementById('panel').classList.add('disabled');
+            await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action, name, month: getCurrentMonth() })
+            });
+            await loadAndRender();
+            document.getElementById('panel').classList.remove('disabled');
         }
 
-        function resetMonth() {
+        async function resetMonth() {
             if (confirm('בטוח לאפס את החודש?')) {
-                localStorage.removeItem(getKey());
-                renderPanel();
+                await sendAction('reset', '');
             }
         }
 
         function renderPanel() {
-            const data = getData();
             let html = '';
             KIDS.forEach(name => {
+                const count = currentData[name] || 0;
                 html += `
                     <div class="kid-btn">
                         <span class="kid-name">${name}</span>
                         <div class="kid-actions">
-                            <button class="minus-btn" onclick="removeFight('${name}')">-</button>
-                            <span class="kid-count">${data[name]}</span>
-                            <button class="plus-btn" onclick="addFight('${name}')">+</button>
+                            <button class="minus-btn" onclick="sendAction('remove','${name}')">-</button>
+                            <span class="kid-count">${count}</span>
+                            <button class="plus-btn" onclick="sendAction('add','${name}')">+</button>
                         </div>
                     </div>`;
             });
