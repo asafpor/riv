@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>סימון ריבים</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #4a6741 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        h1 { color: white; margin-bottom: 30px; font-size: 1.8em; }
+        .login-box {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .login-box input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1.1em;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        .login-box button {
+            width: 100%;
+            padding: 12px;
+            background: #4a6741;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+        }
+        .panel { width: 100%; max-width: 500px; display: none; }
+        .kid-btn {
+            background: white;
+            border-radius: 16px;
+            padding: 20px 24px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            cursor: pointer;
+            border: none;
+            width: 100%;
+            font-size: 1em;
+            transition: transform 0.2s;
+        }
+        .kid-btn:active { transform: scale(0.95); }
+        .kid-name { font-size: 1.4em; font-weight: 600; color: #333; }
+        .kid-count { font-size: 1.8em; font-weight: 700; color: #e53935; }
+        .kid-actions { display: flex; align-items: center; gap: 10px; }
+        .minus-btn {
+            background: #ffcdd2;
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            font-size: 1.2em;
+            cursor: pointer;
+            color: #c62828;
+            font-weight: bold;
+        }
+        .plus-btn {
+            background: #c8e6c9;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #2e7d32;
+            font-weight: bold;
+        }
+        .reset-section {
+            margin-top: 30px;
+            text-align: center;
+        }
+        .reset-btn {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        nav {
+            margin-top: 30px;
+            display: flex;
+            gap: 12px;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border: 2px solid white;
+            border-radius: 30px;
+        }
+        nav a:hover { background: white; color: #2c3e50; }
+        .month-label { color: rgba(255,255,255,0.8); margin-bottom: 20px; font-size: 1.1em; }
+    </style>
+</head>
+<body>
+    <h1>סימון ריבים</h1>
+    <div class="month-label" id="monthLabel"></div>
+
+    <div class="login-box" id="loginBox">
+        <p style="margin-bottom:16px;color:#666;">הכניסי סיסמה</p>
+        <input type="password" id="passInput" placeholder="סיסמה">
+        <button onclick="tryLogin()">כניסה</button>
+    </div>
+
+    <div class="panel" id="panel"></div>
+    <div class="reset-section" id="resetSection" style="display:none;">
+        <button class="reset-btn" onclick="resetMonth()">איפוס חודש</button>
+    </div>
+
+    <nav>
+        <a href="index.html">תוצאות</a>
+        <a href="rules.html">חוקים</a>
+    </nav>
+
+    <script>
+        const KIDS = ['דנ', 'אב', 'יר', 'ג'];
+        const PASS = 'riv2024';
+
+        function getCurrentMonth() {
+            const now = new Date();
+            return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        }
+
+        function getMonthLabel() {
+            const now = new Date();
+            const months = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
+            return `${months[now.getMonth()]} ${now.getFullYear()}`;
+        }
+
+        function getKey() { return `fights_${getCurrentMonth()}`; }
+
+        function getData() {
+            const data = localStorage.getItem(getKey());
+            if (!data) {
+                const initial = {};
+                KIDS.forEach(k => initial[k] = 0);
+                return initial;
+            }
+            return JSON.parse(data);
+        }
+
+        function saveData(data) {
+            localStorage.setItem(getKey(), JSON.stringify(data));
+        }
+
+        function tryLogin() {
+            const input = document.getElementById('passInput').value;
+            if (input === PASS) {
+                document.getElementById('loginBox').style.display = 'none';
+                document.getElementById('panel').style.display = 'block';
+                document.getElementById('resetSection').style.display = 'block';
+                renderPanel();
+            } else {
+                alert('סיסמה שגויה');
+            }
+        }
+
+        document.getElementById('passInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') tryLogin();
+        });
+
+        function addFight(name) {
+            const data = getData();
+            data[name]++;
+            saveData(data);
+            renderPanel();
+        }
+
+        function removeFight(name) {
+            const data = getData();
+            if (data[name] > 0) data[name]--;
+            saveData(data);
+            renderPanel();
+        }
+
+        function resetMonth() {
+            if (confirm('בטוח לאפס את החודש?')) {
+                localStorage.removeItem(getKey());
+                renderPanel();
+            }
+        }
+
+        function renderPanel() {
+            const data = getData();
+            let html = '';
+            KIDS.forEach(name => {
+                html += `
+                    <div class="kid-btn">
+                        <span class="kid-name">${name}</span>
+                        <div class="kid-actions">
+                            <button class="minus-btn" onclick="removeFight('${name}')">-</button>
+                            <span class="kid-count">${data[name]}</span>
+                            <button class="plus-btn" onclick="addFight('${name}')">+</button>
+                        </div>
+                    </div>`;
+            });
+            document.getElementById('panel').innerHTML = html;
+        }
+
+        document.getElementById('monthLabel').textContent = getMonthLabel();
+    </script>
+</body>
+</html>

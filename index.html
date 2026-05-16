@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מד ריבים</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        h1 { color: white; margin-bottom: 10px; font-size: 2em; }
+        .month-label { color: rgba(255,255,255,0.8); margin-bottom: 30px; font-size: 1.2em; }
+        .scoreboard { width: 100%; max-width: 500px; }
+        .player {
+            background: white;
+            border-radius: 16px;
+            padding: 20px 24px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .player-info { display: flex; align-items: center; gap: 12px; }
+        .rank { font-size: 1.5em; width: 40px; text-align: center; }
+        .player-name { font-size: 1.3em; font-weight: 600; color: #333; }
+        .fight-count { font-size: 2em; font-weight: 700; color: #764ba2; }
+        .medal-1 { background: linear-gradient(135deg, #fff9c4, #fff176); }
+        .medal-2 { background: linear-gradient(135deg, #e8eaf6, #c5cae9); }
+        .medal-last { background: linear-gradient(135deg, #ffebee, #ffcdd2); }
+        .prize-tag {
+            font-size: 0.8em;
+            padding: 4px 10px;
+            border-radius: 20px;
+            color: white;
+            font-weight: 600;
+        }
+        .prize-big { background: #4caf50; }
+        .prize-small { background: #2196f3; }
+        .prize-dishes { background: #f44336; }
+        .bonus-banner {
+            background: linear-gradient(135deg, #4caf50, #66bb6a);
+            color: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.2em;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        nav {
+            margin-top: 30px;
+            display: flex;
+            gap: 12px;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border: 2px solid white;
+            border-radius: 30px;
+            transition: all 0.3s;
+        }
+        nav a:hover { background: white; color: #764ba2; }
+        .no-data { color: white; font-size: 1.2em; text-align: center; margin-top: 40px; }
+    </style>
+</head>
+<body>
+    <h1>מד ריבים</h1>
+    <div class="month-label" id="monthLabel"></div>
+    <div id="bonusBanner"></div>
+    <div class="scoreboard" id="scoreboard"></div>
+    <nav>
+        <a href="rules.html">חוקים</a>
+    </nav>
+    <script>
+        const KIDS = ['דנ', 'אב', 'יר', 'ג'];
+
+        function getCurrentMonth() {
+            const now = new Date();
+            return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        }
+
+        function getMonthLabel() {
+            const now = new Date();
+            const months = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
+            return `${months[now.getMonth()]} ${now.getFullYear()}`;
+        }
+
+        function getData() {
+            const key = `fights_${getCurrentMonth()}`;
+            const data = localStorage.getItem(key);
+            if (!data) {
+                const initial = {};
+                KIDS.forEach(k => initial[k] = 0);
+                return initial;
+            }
+            return JSON.parse(data);
+        }
+
+        function render() {
+            document.getElementById('monthLabel').textContent = getMonthLabel();
+            const data = getData();
+            const sorted = Object.entries(data).sort((a, b) => a[1] - b[1]);
+            const scoreboard = document.getElementById('scoreboard');
+            const bonusBanner = document.getElementById('bonusBanner');
+            const totalFights = sorted.reduce((sum, [_, count]) => sum + count, 0);
+
+            if (totalFights === 0) {
+                scoreboard.innerHTML = '<div class="no-data">עדיין אין נתונים החודש</div>';
+                bonusBanner.innerHTML = '';
+                return;
+            }
+
+            const allUnderTen = sorted.every(([_, count]) => count < 10);
+            if (allUnderTen) {
+                bonusBanner.innerHTML = '<div class="bonus-banner">כולן מתחת ל-10! כולן מקבלות פרס!</div>';
+            } else {
+                bonusBanner.innerHTML = '';
+            }
+
+            let html = '';
+            sorted.forEach(([name, count], index) => {
+                let medalClass = '';
+                let rankEmoji = '';
+                let prizeHtml = '';
+
+                if (index === 0) {
+                    medalClass = 'medal-1';
+                    rankEmoji = '🥇';
+                    prizeHtml = '<span class="prize-tag prize-big">פרס גדול!</span>';
+                } else if (index === 1) {
+                    medalClass = 'medal-2';
+                    rankEmoji = '🥈';
+                    prizeHtml = '<span class="prize-tag prize-small">פרס קטן</span>';
+                } else if (index === sorted.length - 1) {
+                    medalClass = 'medal-last';
+                    rankEmoji = '🍽️';
+                    prizeHtml = '<span class="prize-tag prize-dishes">מדיח חודש!</span>';
+                } else {
+                    rankEmoji = `${index + 1}`;
+                }
+
+                html += `
+                    <div class="player ${medalClass}">
+                        <div class="player-info">
+                            <span class="rank">${rankEmoji}</span>
+                            <span class="player-name">${name}</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            ${prizeHtml}
+                            <span class="fight-count">${count}</span>
+                        </div>
+                    </div>`;
+            });
+            scoreboard.innerHTML = html;
+        }
+
+        render();
+    </script>
+</body>
+</html>

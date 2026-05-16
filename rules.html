@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>חוקים</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        h1 { color: white; margin-bottom: 30px; font-size: 2em; }
+        .rules-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .rule {
+            padding: 16px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        .rule:last-child { border-bottom: none; }
+        .rule-icon { font-size: 1.5em; }
+        .rule-text { font-size: 1.1em; color: #333; line-height: 1.6; }
+        .rule-highlight { font-weight: 700; color: #f5576c; }
+        nav {
+            margin-top: 30px;
+            display: flex;
+            gap: 12px;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border: 2px solid white;
+            border-radius: 30px;
+        }
+        nav a:hover { background: white; color: #f5576c; }
+    </style>
+</head>
+<body>
+    <h1>חוקים</h1>
+    <div class="rules-card">
+        <div class="rule">
+            <span class="rule-icon">🌟</span>
+            <span class="rule-text">אם <span class="rule-highlight">כולן</span> רבות פחות מ-10 פעמים בחודש - כולן מקבלות פרס!</span>
+        </div>
+        <div class="rule">
+            <span class="rule-icon">🥇</span>
+            <span class="rule-text">מי שרבה <span class="rule-highlight">הכי פחות</span> - מקבלת פרס גדול!</span>
+        </div>
+        <div class="rule">
+            <span class="rule-icon">🥈</span>
+            <span class="rule-text">מקום שני - פרס קטן</span>
+        </div>
+        <div class="rule">
+            <span class="rule-icon">🍽️</span>
+            <span class="rule-text">מקום <span class="rule-highlight">אחרון</span> - מפנה מדיח חודש שלם!</span>
+        </div>
+    </div>
+    <nav>
+        <a href="index.html">תוצאות</a>
+    </nav>
+</body>
+</html>
